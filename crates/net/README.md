@@ -32,6 +32,28 @@ let resp = Request::get("/path")
     .unwrap();
 assert_eq!(resp.status(), 200);
 ```
+with body
+```rust
+    let url = "https://jsonplaceholder.typicode.com/posts";
+    let response = Request::post(url)
+        .header("Content-Type", "application/json")
+        .body(r#"{
+            "title": "hello",
+            "body": "hardcoded string",
+            "userId": 1
+        }"#)
+        .unwrap()
+        .send()
+        .await
+        .unwrap();
+
+    let data = response
+        .text()
+        .await
+        .unwrap();
+    println!("response: {}", data);
+```
+
 
 ### WebSocket
 
