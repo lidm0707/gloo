@@ -7,7 +7,7 @@ pub mod callbacks {
     };
     use gloo_events::EventListener;
     use std::{cell::RefCell, rc::Rc};
-    use wasm_bindgen::{prelude::*, throw_str, JsCast, UnwrapThrowExt};
+    use wasm_bindgen::{JsCast, UnwrapThrowExt, prelude::*, throw_str};
 
     /// A guard object that aborts the file read when dropped (if the read isn't already
     /// finished).
@@ -144,7 +144,6 @@ pub mod callbacks {
 #[cfg(feature = "futures")]
 pub mod futures {
     use crate::{Blob, FileReadError};
-    use std::future::Future;
     use wasm_bindgen::UnwrapThrowExt;
 
     /// Returns the contents of `blob` as a text string.

@@ -10,7 +10,7 @@ use crate::history::History;
 use crate::listener::HistoryListener;
 use crate::location::Location;
 use crate::state::{compose_state, extract_state};
-use crate::utils::{get_id, WeakCallback};
+use crate::utils::{WeakCallback, get_id};
 #[cfg(feature = "query")]
 use crate::{error::HistoryResult, query::ToQuery};
 
@@ -24,7 +24,7 @@ pub struct BrowserHistory {
 
 impl fmt::Debug for BrowserHistory {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("BrowserHistory").finish()
+        f.debug_struct("BrowserHistory").finish_non_exhaustive()
     }
 }
 

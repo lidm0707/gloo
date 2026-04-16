@@ -1,19 +1,17 @@
 use std::cell::RefCell;
 use std::fmt;
-#[cfg(feature = "futures")]
-use std::future::Future;
 use std::rc::Rc;
 
 use serde::de::Deserialize;
 use serde::ser::Serialize;
 use wasm_bindgen_futures::spawn_local;
 
+use super::Shared;
 use super::handler_id::HandlerId;
 use super::lifecycle::{WorkerLifecycleEvent, WorkerRunnable, WorkerState};
 use super::messages::FromWorker;
 use super::native_worker::{DedicatedWorker, NativeWorkerExt, WorkerSelf};
 use super::traits::Worker;
-use super::Shared;
 use crate::codec::Codec;
 
 /// A handle that closes the worker when it is dropped.
@@ -26,7 +24,8 @@ where
 
 impl<W: Worker> fmt::Debug for WorkerDestroyHandle<W> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("WorkerDestroyHandle<_>")
+        f.debug_struct("WorkerDestroyHandle<_>")
+            .finish_non_exhaustive()
     }
 }
 
@@ -56,7 +55,7 @@ pub struct WorkerScope<W: Worker> {
 
 impl<W: Worker> fmt::Debug for WorkerScope<W> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("WorkerScope<_>")
+        f.debug_struct("WorkerScope<_>").finish_non_exhaustive()
     }
 }
 

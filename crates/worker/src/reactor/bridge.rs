@@ -12,8 +12,8 @@ use super::messages::{ReactorInput, ReactorOutput};
 use super::scope::ReactorScoped;
 use super::traits::Reactor;
 use super::worker::ReactorWorker;
-use crate::actor::{WorkerBridge, WorkerSpawner};
 use crate::Codec;
+use crate::actor::{WorkerBridge, WorkerSpawner};
 
 /// A connection manager for components interaction with oneshot workers.
 ///
@@ -31,7 +31,7 @@ where
     R: Reactor,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ReactorBridge<_>")
+        f.debug_struct("ReactorBridge<_>").finish_non_exhaustive()
     }
 }
 

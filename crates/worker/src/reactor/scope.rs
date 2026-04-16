@@ -2,9 +2,9 @@ use std::convert::Infallible;
 use std::fmt;
 use std::pin::Pin;
 
+use futures::Sink;
 use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
-use futures::Sink;
 
 /// A handle to communicate with bridges.
 pub struct ReactorScope<I, O> {
@@ -14,7 +14,7 @@ pub struct ReactorScope<I, O> {
 
 impl<I, O> fmt::Debug for ReactorScope<I, O> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ReactorScope<_>").finish()
+        f.debug_struct("ReactorScope<_>").finish_non_exhaustive()
     }
 }
 
