@@ -1,24 +1,3 @@
-//!<div align="center">
-//!  <p>
-//!    <a href="https://crates.io/crates/gloo-net"><img src="https://img.shields.io/crates/v/gloo-net.svg?style=flat-square" alt="Crates.io version" /></a>
-//!    <a href="https://crates.io/crates/gloo-net"><img src="https://img.shields.io/crates/d/gloo-net.svg?style=flat-square" alt="Download" /></a>
-//!    <a href="https://docs.rs/gloo-net"><img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="docs.rs docs" /></a>
-//!  </p>
-//!
-//!  <h3>
-//!    <a href="https://docs.rs/gloo-net">API Docs</a>
-//!    <span> | </span>
-//!    <a href="https://github.com/rustwasm/gloo/blob/master/CONTRIBUTING.md">Contributing</a>
-//!    <span> | </span>
-//!    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
-//!  </h3>
-//!
-//!<sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
-//!</div>
-//!
-//!HTTP requests library for WASM Apps. It provides idiomatic Rust bindings for the `web_sys` [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), [`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) and [`EventSource`](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) APIs.
-//!
-//!
 //!### HTTP
 //!
 //!```rust,no_run
@@ -45,12 +24,12 @@
 //!}
 //!
 //!async fn run() -> Result<(), gloo_net::Error> {
-//!let response = Request::post("https://example.com/posts")
-//!    .json(&Post { title: "hello", body: "world", user_id: 1 })?
-//!    .send()
-//!    .await?;
-//!let data = response.text().await?;
-//!Ok(())
+//!    let response = Request::post("https://example.com/posts")
+//!        .json(&Post { title: "hello", body: "world", user_id: 1 })?
+//!        .send()
+//!        .await?;
+//!    let data = response.text().await?;
+//!    Ok(())
 //!}
 //!```
 //!
@@ -90,7 +69,7 @@
 //!spawn_local(async move {
 //!    let mut all_streams = stream::select(stream_1, stream_2);
 //!    while let Some(Ok((event_type, msg))) = all_streams.next().await {
-//!        gloo_console::log!("1. {}: {:?}", event_type, msg)
+//!        gloo_console::log!(format!("1. {event_type}: {msg:?}"))
 //!    }
 //!    gloo_console::log!("EventSource Closed");
 //!})
