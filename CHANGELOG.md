@@ -194,7 +194,7 @@
 
 ## `gloo-net`
 
-### Unreleased
+### Version 0.7.1
 
 - Add HTTP, WebSocket, and EventSource usage examples to crate-level docs and README
 
