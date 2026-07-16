@@ -82,6 +82,29 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+// wasm-bindgen 0.2.117+ requires `MaybeUnwindSafe` on closure inputs under
+// `panic = "unwind"`. The `Box::new(...) as Box<dyn Fn*>` coercion used to
+// construct internal event callbacks erases any static `UnwindSafe` bound,
+// so we route through `Closure::wrap_assert_unwind_safe` instead. The
+// assertion is sound: every callback in this crate only forwards to ops on
+// state we exclusively own — lock-free `mpsc::UnboundedSender` pushes and
+// single-shot `Option<Waker>` takes/wakes — so a panic across the
+// `catch_unwind` boundary leaves observers seeing only states that are
+// legitimately reachable (a missing wake, a missing message). On any other
+// panic strategy this reduces to plain `Closure::wrap`.
+#[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+macro_rules! wrap_internal {
+    ($e:expr) => {
+        wasm_bindgen::closure::Closure::wrap_assert_unwind_safe($e)
+    };
+}
+#[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
+macro_rules! wrap_internal {
+    ($e:expr) => {
+        wasm_bindgen::closure::Closure::wrap($e)
+    };
+}
+
 mod error;
 #[cfg(feature = "eventsource")]
 #[cfg_attr(docsrs, doc(cfg(feature = "eventsource")))]

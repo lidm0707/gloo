@@ -46,7 +46,20 @@ macro_rules! worker_ext_impl {
                     let msg = CODEC::decode(message.data());
                     handler(msg);
                 };
-                let closure = Closure::wrap(Box::new(handler) as Box<dyn Fn(MessageEvent)>).into_js_value();
+                // wasm-bindgen 0.2.117+ requires `MaybeUnwindSafe` on closure
+                // inputs under `panic = "unwind"`; the `Box<F> as Box<dyn Fn>`
+                // coercion erases that bound. The internal callers (spawner,
+                // registrar) supply handlers that touch `Rc<RefCell<...>>` of
+                // worker state via `borrow_mut().take()` patterns that release
+                // borrows before invoking nested user code, so a panic across
+                // the `catch_unwind` boundary leaves no observable invariant
+                // violation. Asserting unwind safety here is sound. On other
+                // panic strategies this is plain `Closure::wrap`.
+                let inner = Box::new(handler) as Box<dyn Fn(MessageEvent)>;
+                #[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+                let closure = Closure::wrap_assert_unwind_safe(inner).into_js_value();
+                #[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
+                let closure = Closure::wrap(inner).into_js_value();
                 self.set_onmessage(Some(closure.as_ref().unchecked_ref()));
             }
 

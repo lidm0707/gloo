@@ -177,7 +177,7 @@ impl EventSource {
         let message_callback: Closure<dyn FnMut(MessageEvent)> = {
             let event_type = event_type.clone();
             let sender = message_sender.clone();
-            Closure::wrap(Box::new(move |e: MessageEvent| {
+            wrap_internal!(Box::new(move |e: MessageEvent| {
                 let event_type = event_type.clone();
                 let _ = sender.unbounded_send(StreamMessage::Message(event_type, e));
             }) as Box<dyn FnMut(MessageEvent)>)
@@ -192,7 +192,7 @@ impl EventSource {
             .map_err(js_to_js_error)?;
 
         let error_callback: Closure<dyn FnMut(web_sys::Event)> = {
-            Closure::wrap(Box::new(move |e: web_sys::Event| {
+            wrap_internal!(Box::new(move |e: web_sys::Event| {
                 let is_connecting = e
                     .current_target()
                     .map(|target| target.unchecked_into::<web_sys::EventSource>())

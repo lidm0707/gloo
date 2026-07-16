@@ -119,6 +119,34 @@ jobs:
             wasm-pack test --node crates/$x --no-default-features
           done
 
+  panic_unwind_build:
+    name: Build with -Cpanic=unwind
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+          components: rust-src
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-panic-unwind-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-panic-unwind-
+            cargo-${{ runner.os }}-
+
+      - name: Build crates with panic=unwind
+        env:
+          RUSTFLAGS: '-Cpanic=unwind'
+        run: cargo build -p gloo-timers -p gloo-events -p gloo-render -p gloo-net -p gloo-worker --all-features --target wasm32-unknown-unknown -Zbuild-std=std,panic_unwind
+
   test-history-wasi:
     name: Test gloo-history WASI
     runs-on: ubuntu-latest

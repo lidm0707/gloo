@@ -15,6 +15,24 @@ use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{AddEventListenerOptions, Event, EventTarget};
 
+/// Bound carrying the unwind-safety requirement on [`EventListener`] callbacks.
+///
+/// Under `panic = "unwind"` on wasm the callback is invoked across a
+/// `catch_unwind` boundary inside `wasm_bindgen`, so this resolves to
+/// [`std::panic::UnwindSafe`]. Under any other panic strategy it is a no-op
+/// blanket. Wrap non-`UnwindSafe` captures in [`std::panic::AssertUnwindSafe`]
+/// at the call site.
+#[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+pub trait CallbackUnwindSafe: std::panic::UnwindSafe {}
+#[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+impl<T: std::panic::UnwindSafe> CallbackUnwindSafe for T {}
+
+#[doc(hidden)]
+#[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
+pub trait CallbackUnwindSafe {}
+#[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
+impl<T> CallbackUnwindSafe for T {}
+
 /// Specifies whether the event listener is run during the capture or bubble phase.
 ///
 /// The official specification has [a good explanation](https://www.w3.org/TR/DOM-Level-3-Events/#event-flow)
@@ -331,9 +349,18 @@ impl EventListener {
     pub fn new<S, F>(target: &EventTarget, event_type: S, callback: F) -> Self
     where
         S: Into<Cow<'static, str>>,
-        F: FnMut(&Event) + 'static,
+        F: FnMut(&Event) + 'static + CallbackUnwindSafe,
     {
-        let callback = Closure::wrap(Box::new(callback) as Box<dyn FnMut(&Event)>);
+        // The `Box<F> as Box<dyn FnMut(&Event)>` coercion erases the static
+        // `UnwindSafe` bound that wasm-bindgen 0.2.117+ requires under
+        // `panic = "unwind"`. The `CallbackUnwindSafe` bound on `F` has
+        // enforced unwind safety at the call site, so the internal
+        // `_assert_unwind_safe` is sound.
+        let inner = Box::new(callback) as Box<dyn FnMut(&Event)>;
+        #[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+        let callback = Closure::wrap_assert_unwind_safe(inner);
+        #[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
+        let callback = Closure::wrap(inner);
 
         NEW_OPTIONS.with(move |options| {
             Self::raw_new(
@@ -371,8 +398,13 @@ impl EventListener {
     pub fn once<S, F>(target: &EventTarget, event_type: S, callback: F) -> Self
     where
         S: Into<Cow<'static, str>>,
-        F: FnOnce(&Event) + 'static,
+        F: FnOnce(&Event) + 'static + CallbackUnwindSafe,
     {
+        // See `EventListener::new` for the rationale on the cfg-gated
+        // `_assert_unwind_safe` variant.
+        #[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+        let callback = Closure::once_assert_unwind_safe(callback);
+        #[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
         let callback = Closure::once(callback);
 
         ONCE_OPTIONS.with(move |options| {
@@ -450,9 +482,14 @@ impl EventListener {
     ) -> Self
     where
         S: Into<Cow<'static, str>>,
-        F: FnMut(&Event) + 'static,
+        F: FnMut(&Event) + 'static + CallbackUnwindSafe,
     {
-        let callback = Closure::wrap(Box::new(callback) as Box<dyn FnMut(&Event)>);
+        // See `EventListener::new` for the rationale.
+        let inner = Box::new(callback) as Box<dyn FnMut(&Event)>;
+        #[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+        let callback = Closure::wrap_assert_unwind_safe(inner);
+        #[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
+        let callback = Closure::wrap(inner);
 
         Self::raw_new(
             target,
@@ -514,8 +551,12 @@ impl EventListener {
     ) -> Self
     where
         S: Into<Cow<'static, str>>,
-        F: FnOnce(&Event) + 'static,
+        F: FnOnce(&Event) + 'static + CallbackUnwindSafe,
     {
+        // See `EventListener::new` for the rationale.
+        #[cfg(all(target_arch = "wasm32", panic = "unwind"))]
+        let callback = Closure::once_assert_unwind_safe(callback);
+        #[cfg(not(all(target_arch = "wasm32", panic = "unwind")))]
         let callback = Closure::once(callback);
 
         Self::raw_new(

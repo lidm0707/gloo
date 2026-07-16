@@ -133,7 +133,7 @@ impl WebSocket {
 
         let open_callback: Closure<dyn FnMut()> = {
             let waker = Rc::clone(&waker);
-            Closure::wrap(Box::new(move || {
+            wrap_internal!(Box::new(move || {
                 if let Some(waker) = waker.borrow_mut().take() {
                     waker.wake();
                 }
@@ -151,7 +151,7 @@ impl WebSocket {
 
         let message_callback: Closure<dyn FnMut(MessageEvent)> = {
             let sender = sender.clone();
-            Closure::wrap(Box::new(move |e: MessageEvent| {
+            wrap_internal!(Box::new(move |e: MessageEvent| {
                 let msg = parse_message(e);
                 let _ = sender.unbounded_send(StreamMessage::Message(msg));
             }) as Box<dyn FnMut(MessageEvent)>)
@@ -163,7 +163,7 @@ impl WebSocket {
         let error_callback: Closure<dyn FnMut(web_sys::Event)> = {
             let sender = sender.clone();
             let waker = Rc::clone(&waker);
-            Closure::wrap(Box::new(move |_e: web_sys::Event| {
+            wrap_internal!(Box::new(move |_e: web_sys::Event| {
                 if let Some(waker) = waker.borrow_mut().take() {
                     waker.wake();
                 }
@@ -175,7 +175,7 @@ impl WebSocket {
             .map_err(js_to_js_error)?;
 
         let close_callback: Closure<dyn FnMut(web_sys::CloseEvent)> = {
-            Closure::wrap(Box::new(move |e: web_sys::CloseEvent| {
+            wrap_internal!(Box::new(move |e: web_sys::CloseEvent| {
                 let close_event = CloseEvent {
                     code: e.code(),
                     reason: e.reason(),
